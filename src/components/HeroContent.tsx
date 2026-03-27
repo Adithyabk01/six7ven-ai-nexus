@@ -50,9 +50,6 @@ const HeroContent = ({ onHireClick }: HeroContentProps) => {
         transition={{ delay: 1.3, duration: 0.6 }}
         className="flex flex-col sm:flex-row gap-4"
       >
-        <button className="btn-glass-cyan text-lg">
-          Get a Demo
-        </button>
         <button className="btn-glass-purple text-lg" onClick={onHireClick}>
           Hire 6IX7VEN AI Agent
         </button>
