@@ -20,7 +20,7 @@ const VoiceAgentModal = ({ open, onClose }: { open: boolean; onClose: () => void
   const [flowIdx, setFlowIdx] = useState(0);
   const [listening, setListening] = useState(false);
   const [isAgentSpeaking, setIsAgentSpeaking] = useState(false);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const responsesRef = useRef<Record<string, string>>({});
 
@@ -59,7 +59,7 @@ const VoiceAgentModal = ({ open, onClose }: { open: boolean; onClose: () => void
   }, [messages]);
 
   const startListening = () => {
-    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       // Fallback: use prompt
       const response = prompt("Type your response:");
