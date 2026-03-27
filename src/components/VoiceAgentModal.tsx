@@ -10,7 +10,7 @@ interface FormData {
   summary: string;
 }
 
-const WEBHOOK_URL = "https://lazyy.app.n8n.cloud/webhook-test/dcddad67-0c85-46b8-bb9f-94081ac56dc6";
+const WEBHOOK_URL = "https://lazyy.app.n8n.cloud/webhook/dcddad67-0c85-46b8-bb9f-94081ac56dc6";
 
 const VoiceAgentModal = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
   const [form, setForm] = useState<FormData>({ client: "", phone: "", industry: "", useCase: "", summary: "" });
