@@ -8,7 +8,22 @@ const RobotModel = () => {
 
   useFrame((state) => {
     if (!groupRef.current) return;
-    groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.15;
+    
+    // Interactive mouse tracking
+    const targetY = (state.pointer.x * Math.PI) / 4;
+    const targetX = -(state.pointer.y * Math.PI) / 4;
+    
+    // Lerp towards target dynamically combined with innate floating
+    groupRef.current.rotation.y = THREE.MathUtils.lerp(
+      groupRef.current.rotation.y, 
+      targetY + Math.sin(state.clock.elapsedTime * 0.3) * 0.15, 
+      0.05
+    );
+    groupRef.current.rotation.x = THREE.MathUtils.lerp(
+      groupRef.current.rotation.x, 
+      targetX, 
+      0.05
+    );
     groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.15;
   });
 

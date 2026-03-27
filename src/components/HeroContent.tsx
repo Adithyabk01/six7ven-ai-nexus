@@ -51,7 +51,7 @@ const HeroContent = ({ onHireClick }: HeroContentProps) => {
         className="flex flex-col sm:flex-row gap-4"
       >
         <button className="btn-glass-purple text-lg" onClick={onHireClick}>
-          Hire 6IX7VEN AI Agent
+          Let's Talk
         </button>
       </motion.div>
     </div>

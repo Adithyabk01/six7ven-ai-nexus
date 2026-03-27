@@ -6,11 +6,13 @@ import ParticleField from "./ParticleField";
 
 const HeroScene = () => {
   return (
-    <div className="absolute inset-0 z-0">
+    <div className="absolute inset-0 z-0 h-screen w-full">
       <Canvas
         camera={{ position: [0, 0, 5], fov: 50 }}
         gl={{ antialias: true, alpha: true }}
         style={{ background: "transparent" }}
+        eventSource={document.getElementById("root") || undefined}
+        eventPrefix="client"
       >
         <Suspense fallback={null}>
           <ambientLight intensity={0.2} />

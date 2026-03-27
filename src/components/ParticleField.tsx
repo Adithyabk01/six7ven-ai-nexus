@@ -19,8 +19,20 @@ const ParticleField = ({ count = 300 }: { count?: number }) => {
 
   useFrame((state) => {
     if (!mesh.current) return;
-    mesh.current.rotation.y = state.clock.elapsedTime * 0.02;
-    mesh.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.01) * 0.1;
+    
+    const targetY = state.pointer.x * 0.2;
+    const targetX = -state.pointer.y * 0.2;
+    
+    mesh.current.rotation.y = THREE.MathUtils.lerp(
+      mesh.current.rotation.y,
+      state.clock.elapsedTime * 0.02 + targetY,
+      0.05
+    );
+    mesh.current.rotation.x = THREE.MathUtils.lerp(
+      mesh.current.rotation.x,
+      Math.sin(state.clock.elapsedTime * 0.01) * 0.1 + targetX,
+      0.05
+    );
   });
 
   return (

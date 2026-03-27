@@ -71,7 +71,7 @@ const VoiceAgentModal = ({ open, onClose }: { open: boolean; onClose: () => void
             className="glass-panel-strong relative w-full max-w-lg p-6"
           >
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-display text-lg font-semibold">Hire 6IX7VEN AI Agent</h2>
+              <h2 className="font-display text-lg font-semibold">Let's Talk</h2>
               <button onClick={onClose} className="p-2 rounded-xl hover:bg-muted/50 transition-colors">
                 <X className="w-5 h-5 text-muted-foreground" />
               </button>
