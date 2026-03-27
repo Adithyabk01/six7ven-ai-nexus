@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { X, Send } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface FormData {
   client: string;
@@ -10,11 +11,12 @@ interface FormData {
   summary: string;
 }
 
-const WEBHOOK_URL = "https://lazyy.app.n8n.cloud/webhook/dcddad67-0c85-46b8-bb9f-94081ac56dc6";
+const WEBHOOK_URL = "https://lazyy.app.n8n.cloud/webhook/ai_agent";
 
 const VoiceAgentModal = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
   const [form, setForm] = useState<FormData>({ client: "", phone: "", industry: "", useCase: "", summary: "" });
   const [submitting, setSubmitting] = useState(false);
+  const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -28,18 +30,23 @@ const VoiceAgentModal = ({ open, onClose }: { open: boolean; onClose: () => void
     const payload = { ...form, timestamp: new Date().toISOString() };
 
     try {
-      await fetch(WEBHOOK_URL, {
+      const res = await fetch(WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      toast({ title: "Request Sent ✓", description: "Our AI agent will reach out to you shortly." });
+      setForm({ client: "", phone: "", industry: "", useCase: "", summary: "" });
+      onClose();
     } catch (err) {
       console.error("Webhook error:", err);
+      toast({ title: "Submission Failed", description: "Something went wrong. Please try again.", variant: "destructive" });
     }
 
     setSubmitting(false);
-    setForm({ client: "", phone: "", industry: "", useCase: "", summary: "" });
-    onClose();
   };
 
   const inputClass =
