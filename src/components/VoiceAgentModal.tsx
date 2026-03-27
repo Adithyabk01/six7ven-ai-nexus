@@ -97,8 +97,12 @@ const VoiceAgentModal = ({ open, onClose }: { open: boolean; onClose: () => void
     // If last question answered, send webhook
     if (nextIdx >= AGENT_FLOW.length - 1) {
       responsesRef.current[keys[Math.min(flowIdx - 1, keys.length - 1)]] = text;
-      // TODO: send to n8n webhook
       console.log("Captured data:", responsesRef.current);
+      fetch("https://lazyy.app.n8n.cloud/webhook-test/dcddad67-0c85-46b8-bb9f-94081ac56dc6", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(responsesRef.current),
+      }).catch((err) => console.error("Webhook error:", err));
     }
   };
 
