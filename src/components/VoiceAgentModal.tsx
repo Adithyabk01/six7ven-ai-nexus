@@ -4,6 +4,7 @@ import { X, Send } from "lucide-react";
 
 interface FormData {
   client: string;
+  phone: string;
   industry: string;
   useCase: string;
   summary: string;
@@ -12,7 +13,7 @@ interface FormData {
 const WEBHOOK_URL = "https://lazyy.app.n8n.cloud/webhook-test/dcddad67-0c85-46b8-bb9f-94081ac56dc6";
 
 const VoiceAgentModal = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
-  const [form, setForm] = useState<FormData>({ client: "", industry: "", useCase: "", summary: "" });
+  const [form, setForm] = useState<FormData>({ client: "", phone: "", industry: "", useCase: "", summary: "" });
   const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -21,7 +22,7 @@ const VoiceAgentModal = ({ open, onClose }: { open: boolean; onClose: () => void
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.client.trim() || !form.industry.trim() || !form.useCase.trim()) return;
+    if (!form.client.trim() || !form.phone.trim() || !form.industry.trim() || !form.useCase.trim()) return;
 
     setSubmitting(true);
     const payload = { ...form, timestamp: new Date().toISOString() };
@@ -37,7 +38,7 @@ const VoiceAgentModal = ({ open, onClose }: { open: boolean; onClose: () => void
     }
 
     setSubmitting(false);
-    setForm({ client: "", industry: "", useCase: "", summary: "" });
+    setForm({ client: "", phone: "", industry: "", useCase: "", summary: "" });
     onClose();
   };
 
@@ -77,6 +78,16 @@ const VoiceAgentModal = ({ open, onClose }: { open: boolean; onClose: () => void
                 placeholder="Name / Email"
                 required
                 maxLength={200}
+                className={inputClass}
+              />
+              <input
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                placeholder="Phone Number (e.g. +1234567890)"
+                required
+                maxLength={20}
+                type="tel"
                 className={inputClass}
               />
               <input
