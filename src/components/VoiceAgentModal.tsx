@@ -38,7 +38,7 @@ const VoiceAgentModal = ({ open, onClose }: { open: boolean; onClose: () => void
     }
 
     setSubmitting(false);
-    setForm({ client: "", industry: "", useCase: "", summary: "" });
+    setForm({ client: "", phone: "", industry: "", useCase: "", summary: "" });
     onClose();
   };
 
@@ -78,6 +78,16 @@ const VoiceAgentModal = ({ open, onClose }: { open: boolean; onClose: () => void
                 placeholder="Name / Email"
                 required
                 maxLength={200}
+                className={inputClass}
+              />
+              <input
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                placeholder="Phone Number (e.g. +1234567890)"
+                required
+                maxLength={20}
+                type="tel"
                 className={inputClass}
               />
               <input
