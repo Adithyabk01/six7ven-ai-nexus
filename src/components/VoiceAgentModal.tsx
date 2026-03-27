@@ -1,112 +1,48 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useCallback, useEffect, useRef } from "react";
-import { X, Mic, MicOff } from "lucide-react";
+import { useState } from "react";
+import { X, Send } from "lucide-react";
 
-interface Message {
-  role: "agent" | "user";
-  text: string;
+interface FormData {
+  client: string;
+  industry: string;
+  useCase: string;
+  summary: string;
 }
 
-const AGENT_FLOW = [
-  "Hi! This is 6IX7VEN AI. Let's build something powerful for your business.",
-  "What industry are you in?",
-  "What would you like the AI to handle? Sales, Support, or Booking?",
-  "Great! Any specific requirements you'd like to share?",
-  "Thank you! We'll prepare a custom solution for you. Our team will reach out shortly.",
-];
+const WEBHOOK_URL = "https://lazyy.app.n8n.cloud/webhook-test/dcddad67-0c85-46b8-bb9f-94081ac56dc6";
 
 const VoiceAgentModal = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [flowIdx, setFlowIdx] = useState(0);
-  const [listening, setListening] = useState(false);
-  const [isAgentSpeaking, setIsAgentSpeaking] = useState(false);
-  const recognitionRef = useRef<any>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const responsesRef = useRef<Record<string, string>>({});
+  const [form, setForm] = useState<FormData>({ client: "", industry: "", useCase: "", summary: "" });
+  const [submitting, setSubmitting] = useState(false);
 
-  const speakAgent = useCallback((text: string) => {
-    setIsAgentSpeaking(true);
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
-    utterance.onend = () => setIsAgentSpeaking(false);
-    speechSynthesis.speak(utterance);
-  }, []);
-
-  const addAgentMessage = useCallback((idx: number) => {
-    if (idx >= AGENT_FLOW.length) return;
-    const text = AGENT_FLOW[idx];
-    setMessages((prev) => [...prev, { role: "agent", text }]);
-    speakAgent(text);
-  }, [speakAgent]);
-
-  useEffect(() => {
-    if (open) {
-      setMessages([]);
-      setFlowIdx(0);
-      responsesRef.current = {};
-      const t = setTimeout(() => addAgentMessage(0), 600);
-      return () => clearTimeout(t);
-    } else {
-      speechSynthesis.cancel();
-      if (recognitionRef.current) recognitionRef.current.stop();
-      setListening(false);
-    }
-  }, [open, addAgentMessage]);
-
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages]);
-
-  const startListening = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      // Fallback: use prompt
-      const response = prompt("Type your response:");
-      if (response) handleUserResponse(response);
-      return;
-    }
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = "en-US";
-    recognition.onresult = (e: SpeechRecognitionEvent) => {
-      const transcript = e.results[0][0].transcript;
-      handleUserResponse(transcript);
-    };
-    recognition.onend = () => setListening(false);
-    recognition.onerror = () => setListening(false);
-    recognitionRef.current = recognition;
-    recognition.start();
-    setListening(true);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleUserResponse = (text: string) => {
-    setListening(false);
-    setMessages((prev) => [...prev, { role: "user", text }]);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.client.trim() || !form.industry.trim() || !form.useCase.trim()) return;
 
-    const keys = ["name", "industry", "use_case", "requirements_summary"];
-    const nextIdx = flowIdx + 1;
-    if (flowIdx > 0 && flowIdx - 1 < keys.length) {
-      responsesRef.current[keys[flowIdx - 1]] = text;
-    }
+    setSubmitting(true);
+    const payload = { ...form, timestamp: new Date().toISOString() };
 
-    setFlowIdx(nextIdx);
-    setTimeout(() => addAgentMessage(nextIdx), 800);
-
-    // If last question answered, send webhook
-    if (nextIdx >= AGENT_FLOW.length - 1) {
-      responsesRef.current[keys[Math.min(flowIdx - 1, keys.length - 1)]] = text;
-      console.log("Captured data:", responsesRef.current);
-      fetch("https://lazyy.app.n8n.cloud/webhook-test/dcddad67-0c85-46b8-bb9f-94081ac56dc6", {
+    try {
+      await fetch(WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(responsesRef.current),
-      }).catch((err) => console.error("Webhook error:", err));
+        body: JSON.stringify(payload),
+      });
+    } catch (err) {
+      console.error("Webhook error:", err);
     }
+
+    setSubmitting(false);
+    setForm({ client: "", industry: "", useCase: "", summary: "" });
+    onClose();
   };
 
-  const isConversationDone = flowIdx >= AGENT_FLOW.length;
+  const inputClass =
+    "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-colors";
 
   return (
     <AnimatePresence>
@@ -117,7 +53,6 @@ const VoiceAgentModal = ({ open, onClose }: { open: boolean; onClose: () => void
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-[80] flex items-center justify-center p-4"
         >
-          {/* Backdrop */}
           <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={onClose} />
 
           <motion.div
@@ -125,78 +60,62 @@ const VoiceAgentModal = ({ open, onClose }: { open: boolean; onClose: () => void
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: "spring", damping: 25 }}
-            className="glass-panel-strong relative w-full max-w-lg p-6 max-h-[80vh] flex flex-col"
+            className="glass-panel-strong relative w-full max-w-lg p-6"
           >
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className={`w-3 h-3 rounded-full ${isAgentSpeaking ? "bg-primary pulse-glow" : "bg-primary/50"}`} />
-                <h2 className="font-display text-lg font-semibold">6IX7VEN AI Agent</h2>
-              </div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-display text-lg font-semibold">Hire 6IX7VEN AI Agent</h2>
               <button onClick={onClose} className="p-2 rounded-xl hover:bg-muted/50 transition-colors">
                 <X className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
 
-            {/* Waveform visualizer */}
-            {(isAgentSpeaking || listening) && (
-              <div className="flex items-center justify-center gap-1 h-8 mb-3">
-                {Array.from({ length: 12 }).map((_, i) => (
-                  <motion.div
-                    key={i}
-                    className={`w-1 rounded-full ${listening ? "bg-accent" : "bg-primary"}`}
-                    animate={{
-                      height: [4, Math.random() * 24 + 8, 4],
-                    }}
-                    transition={{
-                      duration: 0.5 + Math.random() * 0.3,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                      delay: i * 0.05,
-                    }}
-                  />
-                ))}
-              </div>
-            )}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input
+                name="client"
+                value={form.client}
+                onChange={handleChange}
+                placeholder="Name / Email"
+                required
+                maxLength={200}
+                className={inputClass}
+              />
+              <input
+                name="industry"
+                value={form.industry}
+                onChange={handleChange}
+                placeholder="Industry"
+                required
+                maxLength={100}
+                className={inputClass}
+              />
+              <input
+                name="useCase"
+                value={form.useCase}
+                onChange={handleChange}
+                placeholder="Use Case (Sales, Support, Booking…)"
+                required
+                maxLength={200}
+                className={inputClass}
+              />
+              <textarea
+                name="summary"
+                value={form.summary}
+                onChange={handleChange}
+                placeholder="Brief summary of your requirements"
+                rows={3}
+                maxLength={1000}
+                className={inputClass + " resize-none"}
+              />
 
-            {/* Transcript */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 mb-4 pr-2 min-h-[200px]">
-              {messages.map((msg, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm ${
-                      msg.role === "user"
-                        ? "bg-accent/20 border border-accent/30 text-foreground"
-                        : "bg-primary/10 border border-primary/20 text-foreground"
-                    }`}
-                  >
-                    {msg.text}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Mic button */}
-            {!isConversationDone && (
-              <div className="flex justify-center">
-                <button
-                  onClick={listening ? () => recognitionRef.current?.stop() : startListening}
-                  disabled={isAgentSpeaking}
-                  className={`p-4 rounded-full transition-all duration-300 ${
-                    listening
-                      ? "bg-accent/30 border border-accent/50 pulse-glow"
-                      : "bg-primary/10 border border-primary/30 hover:bg-primary/20"
-                  } disabled:opacity-40 disabled:cursor-not-allowed`}
-                >
-                  {listening ? <MicOff className="w-6 h-6 text-accent" /> : <Mic className="w-6 h-6 text-primary" />}
-                </button>
-              </div>
-            )}
+              <button
+                type="submit"
+                disabled={submitting}
+                className="btn-glass-cyan w-full flex items-center justify-center gap-2 text-base disabled:opacity-50"
+              >
+                <Send className="w-4 h-4" />
+                {submitting ? "Sending…" : "Submit"}
+              </button>
+            </form>
           </motion.div>
         </motion.div>
       )}
